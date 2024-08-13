@@ -16,7 +16,7 @@ pip install -r requirements.txt
 You can access the well pre-processed datasets from Google Drive, then place the downloaded contents under ./all_dataset
 
 ## Quick Demo
-0. If you want to run the Semi setting, please path to `cd GKP_Semi`. Similarly, for the Self setting, path to `cd GKP_Self`. 
+0. If you want to run the Semi setting, please path to `cd GKP_Semi`. 
 1. Download datasets and place them under `./all_dataset`
 2. We provide all experiment scripts for demonstration purpose under the folder `./runfile`. For example, you can evaluate on churn and adult datasets by:
 
@@ -27,12 +27,13 @@ bash ./runfile/churn.sh
 bash ./runfile/adult.sh 
 ```
 
+3. If you want to experiment with all datasets, run the bash file from run_a to run_d.
+
 ## Detailed usage
 Please refer to run.py for the detailed description of each hyperparameter.
-
+We also provide a model where the linear projection of the VSN layer is replaced by KAN. We'll update with more details as they become available.
 
 ## Citation
-
 If you find this repo useful, please cite our paper. 
 
 ```
