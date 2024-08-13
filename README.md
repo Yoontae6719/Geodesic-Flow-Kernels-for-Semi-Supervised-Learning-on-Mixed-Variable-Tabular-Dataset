@@ -28,6 +28,12 @@ bash ./runfile/adult.sh
 ```
 
 3. If you want to experiment with all datasets, run the bash file from run_a to run_d.
+```bash
+bash ./runfile/run_a.sh
+bash ./runfile/run_b.sh
+bash ./runfile/run_c.sh
+bash ./runfile/run_d.sh 
+```
 
 ## Detailed usage
 Please refer to run.py for the detailed description of each hyperparameter.
