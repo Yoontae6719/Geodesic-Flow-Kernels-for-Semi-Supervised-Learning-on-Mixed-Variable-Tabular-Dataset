@@ -12,7 +12,7 @@ import xgboost as xgb
 from xgboost import XGBClassifier
 from scipy.special import softmax
 
-import umap
+#import umap
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -37,7 +37,7 @@ def main():
     np.random.seed(fix_seed)
     
     # 2. parser
-    parser = argparse.ArgumentParser(description='GFTab')
+    parser = argparse.ArgumentParser(description='Semi and Self-supervised learning for Tabluar data')
     
     # 2.1. basic configs
     parser.add_argument('--is_training', type=int, required=True, default=1, help='status')
@@ -50,8 +50,8 @@ def main():
     parser.add_argument('--root_path', type=str, default='./OpenML-CC18-cat/adult/', help='root path of the data file')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
     parser.add_argument('--is_noise', type=int, default=0, help='injection label noise in the traninig data')
-    parser.add_argument('--train_csv', type=str, default='train.csv', help='location of train csv')
-    parser.add_argument('--test_csv', type=str, default='test.csv', help='location of test csv')
+    parser.add_argument('--train_csv', type=str, default='trainIMP.csv', help='location of train csv')
+    parser.add_argument('--test_csv', type=str, default='testIMP.csv', help='location of test csv')
     parser.add_argument('--cat_names', type=str, default='cat_feat_names.csv', help='location of cat_feat_names')
     
     # 2.3 model configs - Self supervised learning task
@@ -100,8 +100,8 @@ def main():
     parser.add_argument('--itr', type=int, default=3, help='experiments times')
     parser.add_argument('--train_epochs', type=int, default=50, help='train epochs') #epoch
     parser.add_argument('--batch_size', type=int, default=128, help='batch size of train input data')
-    parser.add_argument('--patience', type=int, default=10, help='early stopping patience')
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='optimizer learning rate')
+    parser.add_argument('--patience', type=int, default=5, help='early stopping patience')
+    parser.add_argument('--learning_rate', type=float, default=0.002, help='optimizer learning rate')
     parser.add_argument('--des', type=str, default='test', help='exp description')
     parser.add_argument('--sim_loss', type=str, default='GKP', help='loss function')
 
@@ -125,27 +125,19 @@ def main():
 
     print('Args in experiment:')
     print(args)
+    print("==")
+    print(args.loss_weight)
     
     Exp = Exp_Main
     
     if args.is_training:
         for ii in range(3): # for robustness
         
-            setting = 'noise_{}_label_{}_{}_embed_dim_{}_cont_{}_{}_{}_{}_{}__{}_lambda_{}_batch_size_{}_{}_{}_ii_{}'.format(
+            setting = 'noise_{}_label_{}_{}_{}_ii_{}'.format(
                 args.is_noise,
                 args.label_ratio,
                 args.data,
-                args.embed_dim,
-                args.cont_emb,
-                args.dim_head,
-                args.fcn_hidden,
-                args.fcn_n_sin,
-                args.depth,
-                args.heads,
-                args.lambda_value * 10,
-                args.batch_size,
-                args.cat_mask_ratio,
-                args.sim_loss,
+                int(args.loss_weight) * 10,
                 ii)
             
             exp = Exp(args,ii) # set experiments
@@ -153,7 +145,7 @@ def main():
             exp.train(setting)
             
             
-            folder_path = './results/' + "GKP_Final/" + setting + '/' #GKP_Semiabl, GKP_Semiloss, GKP_Semi(will do)
+            folder_path = './results/' + "GKP_IMP/" + setting + '/' #GKP_Semiabl, GKP_Semiloss, GKP_Semi(will do)
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)            
             
@@ -199,8 +191,10 @@ def main():
             test_repre = [v.cpu().detach().numpy() for v in total_test_repre ]
             test_repre = np.concatenate([v for v in test_repre])
             
-            
-            for c in [0.01, 0.1, 1]: # See the SubTab Paper : https://arxiv.org/abs/2110.04361
+            #imp_variable = exp.test_repre(setting, "semi_train")
+            #print(imp_variable.shape)
+           
+            for c in [0.01, 0.1, 1, 10]:
                 clf = LogisticRegression(max_iter=1200, solver='lbfgs', C=c, multi_class='multinomial')
                 clf.fit(train_repre, batch_train_y)
 
@@ -225,10 +219,10 @@ def main():
             
             print(">>>>> Leaf data")
             torch.cuda.empty_cache()
-
+        
     
-
+        
 if __name__ == "__main__":
     main()
-
+    
     
