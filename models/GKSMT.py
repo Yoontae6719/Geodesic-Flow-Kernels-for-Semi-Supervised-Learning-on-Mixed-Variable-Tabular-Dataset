@@ -7,7 +7,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils import spectral_norm
 
-from layers.KAN_VSN import GLU, GRN, VariableSelectionNetwork
+#from layers.KAN_VSN import GLU, GRN, VariableSelectionNetwork
+from layers.VSN import GLU, GRN, VariableSelectionNetwork
+
+
 from layers.GTF import GTransformer
 from einops import rearrange, repeat
 import random
@@ -85,15 +88,20 @@ class Model(nn.Module):
         
         self.numerical_embedder = NumericalEmbedder(args.cont_emb, args.num_cont) # batch * num_cont -> batch * num_cont *cont_emb
         
+        # KAN BASED VSN
+        #self.vsn_f = VariableSelectionNetwork(input_size = args.cont_emb,
+        #                                       num_cont_inputs = args.num_cont,
+        #                                       hidden_size = args.num_cont,
+        #                                       dropout = 0.1, #0.2
+        #                                      device = self.device,
+        #                                      fcn_hidden=self.fcn_hidden,
+        #                                      fcn_n_sin = self.fcn_n_sin
+        #                                      )
+        # NORMAL VSN
         self.vsn_f = VariableSelectionNetwork(input_size = args.cont_emb,
                                                num_cont_inputs = args.num_cont,
-                                               hidden_size = args.num_cont,
-                                               dropout = 0.1, #0.2
-                                              device = self.device,
-                                              fcn_hidden=self.fcn_hidden,
-                                              fcn_n_sin = self.fcn_n_sin
-                                              )
-        
+                                               hidden_size = args.num_cont ,
+                                               dropout = 0.1)        
         
         # Step 2. representation 
         self.f_target = GTransformer(categories = tuple(args.cat_unique_list), # tuple containing the number of unique values within each category
@@ -143,6 +151,7 @@ class Model(nn.Module):
                 x_cont = x_cont.view(x_cont.shape[0], -1) #x_cont = self.apply_cont_embedding(x_cont)
                 x_cont, f_ori_weights = self.vsn_f(x_cont)
             else:
+                f_ori_weights = None
                 pass
 
             # Step 2. Tabular Corruption
@@ -156,7 +165,7 @@ class Model(nn.Module):
             target_representation = self.f_target(positive_mix_cont, cat_nh_pos, None, mode = "self", return_attn = False)   # old one; 
             source_representation = self.f_source(negative_mix_cont, cat_nh_1,  None, mode = "self", return_attn = False)    # New one;  
 
-            return target_representation, target_representation, target_representation
+            return source_representation, target_representation, target_representation, f_ori_weights
       
         
     def random_non_zero_int(self, value, batch_size, cat):
