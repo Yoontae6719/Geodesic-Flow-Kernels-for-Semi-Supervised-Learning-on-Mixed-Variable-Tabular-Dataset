@@ -179,7 +179,7 @@ class Exp_Main(Exp_Basic):
                 batch_cat  = batch_cat.to(self.device)
                 batch_y = batch_y.to(self.device)
                 
-                neg_feat, pos_feat, pos_repre  = self.model(batch_cont, batch_cat, None, mode = "self")
+                neg_feat, pos_feat, pos_repre,_  = self.model(batch_cont, batch_cat, None, mode = "self")
                 
                 # Compute loss
                 if self.sim_loss == "GKP":
@@ -200,8 +200,6 @@ class Exp_Main(Exp_Basic):
                 vali_CLS_loss.append(cls_loss.item())         
                 
 
-                
-       
             
         valid_GKP_loss = np.average(vali_GKP_loss)
         valid_CLS_loss = np.average(vali_CLS_loss)
@@ -257,7 +255,7 @@ class Exp_Main(Exp_Basic):
                 # Feed input to the model
                 batch_cont = batch_cont.float().to(self.device)                
                 batch_cat  = batch_cat.to(self.device)
-                neg_feat, pos_feat, pos_repre  = self.model(batch_cont, batch_cat, None, mode = "self")
+                neg_feat, pos_feat, pos_repre,_  = self.model(batch_cont, batch_cat, None, mode = "self")
                 if self.sim_loss == "GKP":
                     loss = GKP_criterion(neg_feat.detach(), pos_feat) 
                 else:
@@ -275,7 +273,7 @@ class Exp_Main(Exp_Basic):
                 batch_yy = batch_yy.to(self.device)
                 
                 y_hat,_  = self.model(None, None, batch_leaves, mode = "semi")
-                cls_loss = CLS_criterion(y_hat, batch_yy.squeeze(dim=-1)) * self.loss_weight
+                cls_loss = CLS_criterion(y_hat, batch_yy.squeeze(dim=-1))
                 
                 score, acc = self.accuracy_function(batch_yy, y_hat)
                 total_score.append(score)
@@ -335,6 +333,7 @@ class Exp_Main(Exp_Basic):
         
         total_ = []
         batch_y_list = []
+        f_ori = []
 
         self.model.eval()
         with torch.no_grad():
@@ -346,14 +345,13 @@ class Exp_Main(Exp_Basic):
                 batch_cat  = batch_cat.to(self.device)
                 batch_y = batch_y.to(self.device)
                 
-                neg_feat, pos_feat, repre  = self.model(x_cont = batch_cont, x_cat = batch_cat, leaf = None, mode = "self")
-                
-                total_.append(repre)
-                batch_y_list.append(batch_y)
+                neg_feat, pos_feat, repre, f_ori_weights  = self.model(x_cont = batch_cont, x_cat = batch_cat, leaf = None, mode = "self")
+
+                f_ori.append(f_ori_weights)
         
      
         
-        return total_, batch_y_list
+        return f_ori
 
 
     def test_repre_leaf(self, setting, flag):
