@@ -2,6 +2,7 @@
 
 This is the origin Pytorch implementation of *Geodesic Kernel flow for Semi-supervised learning on a Mixed-variable Tabular dataset*.
 
+**Warning** This code is not cleand. We will be update the code soon.
 **News**(Jun, 01, 2024): The code has been released..
  
 
